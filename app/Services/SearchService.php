@@ -9,7 +9,7 @@ class SearchService
     //used to santise the argument passed in from the user to determine if its a link, what type of link and if its a text query
     public function searchSanitisation($args)
     {
-        Log::info('I made it :cry:');
+        Log::info('I FUCKING made it :cry:');
         //vars used to check what the query is
         $soundcloud = 'soundcloud.com';
         $youtubeWatch = 'www.youtube.com';
@@ -26,9 +26,10 @@ class SearchService
         }
         else{
             $err = 'Link must begin with https://';
-            return $err; // how can i handle this too btw because i want to return this maybe as a attribute? 
+            return $err; // how can i handle this too btw because i want to return this maybe as a attribute?
         }
 
+        //if i want to add more urls just add else if and handle it on js end.
         if ($parsedHost == $soundcloud){
             $websiteUsed = 'soundcloud';
         }

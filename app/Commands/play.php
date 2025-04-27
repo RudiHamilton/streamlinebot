@@ -49,9 +49,6 @@ class play extends Command
     {
         $userAuthService = new UserAuthService;
 
-        $userId = $message->user_id;
-        $usertoken = $userAuthService->tokenCheck($userId);
-
         //checks to see if there is an argument following the play. for future might have a else to this to unpause a song
         if (empty($args)) {
             return $this->message()
@@ -59,13 +56,6 @@ class play extends Command
                 ->content('Please provide a URL from soundcloud/youtube/spotify or a song name.')
                 ->send($message);
         }
-
-        // will check the types of urls and return the string to an api that the microservices will use to determine what website to get the song from.
-        $response = Http::post(config('discord.http').'/api/search-audio/?token='.$usertoken, [
-            'args' => $args
-        ]);
-        
-        $data = $response->json();
 
         //checks to see if user is in voice channel.
         $channel = $message->member->getVoiceChannel() ?? null;
@@ -87,6 +77,23 @@ class play extends Command
                     You might\'ve turned off my permission to join channels when I joined but just reapply these permissions and we should be ok!')
                 ->send($message);
         }
+        //FOR THIS ----------------------------------------------
+
+        // get username and id to pass into token check
+        $username = $message->member->username;
+        $discordId = $message->user_id;
+        $usertoken = $userAuthService->tokenCheck($username,$discordId);
+
+        // will check the types of urls and return the string to an api that the microservices will use to determine what website to get the song from.
+        //Also everything below this will run async because i dont want this bottlenecking. but on js side will wait till a user has joined call
+        //
+        $response = Http::post(config('discord.http').'/api/search-audio/?token='.$usertoken, [
+            'args' => $args
+        ]);
+        
+        $data = $response->json();
+
+        //TO THIS -------------------------------------------------- maybe async 
 
         //after these statements are finished bot can join voice channel.
         $this->discord()->joinVoiceChannel(channel: $channel, mute: false, deaf: true);
