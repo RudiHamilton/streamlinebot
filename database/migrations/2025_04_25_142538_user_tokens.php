@@ -16,10 +16,10 @@ return new class extends Migration
             $table->id();
             $table->string('username');
             $table->string('discord_id');
-            $table->string('bot_access_token')->unique()->nullable();
-            $table->string('spotify_auth_token')->nullable();
-            $table->string('spotify_app_token')->nullable();
-            $table->string('spotify_app_refresh_token')->nullable();
+            $table->text('bot_access_token')->unique()->nullable();
+            $table->text('spotify_auth_token')->nullable();
+            $table->text('spotify_app_token')->nullable();
+            $table->text('spotify_app_refresh_token')->nullable();
             $table->datetime('spotify_expires_at')->nullable();
             $table->timestamps();
         });

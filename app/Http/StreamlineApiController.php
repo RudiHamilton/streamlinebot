@@ -3,15 +3,12 @@
 namespace App\Http;
 
 use App\Models\DiscordUserAccessTokens;
-use CreateSpotifyToken;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Laracord\Http\Controllers\Controller;
-use App\Services\SearchService;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Symfony\Component\Mime\CharacterStream;
-use React\Promise\Promise;
+
 
 class StreamlineApiController extends Controller
 {
@@ -30,7 +27,7 @@ class StreamlineApiController extends Controller
 
         $code = $request->query('code');
         $state = $request->query('state'); // this is the bot_access_token passed in state
-        PHP_EOL.var_dump($state);
+        
         if (!$code) {
             return response()->json(['error' => 'No code provided'], 400);
         }
@@ -50,22 +47,38 @@ class StreamlineApiController extends Controller
         }
 
         $data = $response->json();
-
-        // return new Promise(function ($resolve) use ($code, $state, $data) {
-        //     DiscordUserAccessTokens::where('bot_access_token', $state)->update([
-        //         'spotify_auth_token' => $code,
-        //         'spotify_app_token' => $data['access_token'],
-        //         'spotify_app_refresh_token' => $data['refresh_token'],
-        //         'spotify_expires_at' => $data['expires_in'],
-        //     ]);
-        //     $resolve(redirect('https://open.spotify.com/'));
-        // });
-
+        $tokenExpiresAt = Carbon::now()->addHour();
+        var_dump($tokenExpiresAt->toDateTimeString());
+        cache()->put(
+            key: 'spotify_tokens_' . $state, 
+            value: [
+                'auth_token' => $code,
+                'access_token' => $data['access_token'],
+                'refresh_token' => $data['refresh_token'],
+                'expires_in' => $tokenExpiresAt,
+                'cached_at' => now(),
+            ],
+            ttl: now()->addDay() // cached for a day to ensure that the bot will run the command at the end of the day
+        );
         return redirect('https://open.spotify.com/');
 
         //(new CreateSpotifyToken())->storeSpotifyAccessTokens(bot_access_token: $state, spotify_auth_token: $code, spotify_app_token: $data['access_token'], spotify_app_refresh_token: $data['refresh_token'],spotify_expires_at: $data['expires_in']);
 
        
+    }
+    protected function updateDatabase(string $botToken, array $tokenData): void
+    {
+        try {
+            DiscordUserAccessTokens::where('bot_access_token', $botToken)
+                ->update([
+                    'spotify_auth_token' => $tokenData['auth_token'],
+                    'spotify_app_token' => $tokenData['access_token'],
+                    'spotify_app_refresh_token' => $tokenData['refresh_token'],
+                    'spotify_expires_at' => $tokenData['expires_in'],
+                ]);
+        } catch (\Exception $e) {
+            $this->sendMessage("Error updating database: {$e->getMessage()}");
+        }
     }
 }
 

@@ -124,13 +124,13 @@ class mimic extends Command
                     We just want access to your queue and playback state, we will not edit or tamper with your playback experience when not using the bot.
 
                     Click the link button below to get started! 
-x
+
                     im not like that cuh (enjoy freemium 😎)
                 ')
                 //https://accounts.spotify.com/authorize?client_id='.config('app.spotify_client_id').'&response_type=code&redirect_uri='.$url
                 ->button('Go to authorisation process 🔒',$url)
                 ->sendTo($discordId);
-    
+
         }elseif($spotifyAppToken == true){
             return $this
             ->message()
