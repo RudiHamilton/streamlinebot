@@ -93,6 +93,8 @@ return [
 
     'http' => env('HTTP_SERVER', ':8080'),
 
+    'ngrok' =>env('NGROK_TUNNEL'),
+
     /*
     |--------------------------------------------------------------------------
     | Timestamp Format
@@ -134,7 +136,7 @@ return [
     */
 
     'commands' => [
-        Laracord\Commands\HelpCommand::class,
+        // Laracord\Commands\HelpCommand::class,
     ],
 
     /*

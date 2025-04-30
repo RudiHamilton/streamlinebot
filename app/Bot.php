@@ -20,8 +20,13 @@ class Bot extends Laracord
         Route::middleware('api')->group(function () {
              //posts the users query.
              //get for now to test...
-            Route::post('/api/search-audio',[StreamlineApiController::class,'search']);
+            Route::get('/api/search-audio',[StreamlineApiController::class,'search']);
+
+            
+            
         });
+
+        Route::get('/api/spotify-auth-callback',[StreamlineApiController::class, 'spotifyAuthCallback']);
 
        
       

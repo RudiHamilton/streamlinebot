@@ -7,6 +7,7 @@ use Laracord\Commands\Command;
 use App\Services\SearchService;
 use App\Services\UserAuthService;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class play extends Command
 {
@@ -85,13 +86,24 @@ class play extends Command
         $usertoken = $userAuthService->tokenCheck($username,$discordId);
 
         // will check the types of urls and return the string to an api that the microservices will use to determine what website to get the song from.
-        //Also everything below this will run async because i dont want this bottlenecking. but on js side will wait till a user has joined call
-        //
-        $response = Http::post(config('discord.http').'/api/search-audio/?token='.$usertoken, [
-            'args' => $args
-        ]);
-        
-        $data = $response->json();
+        //Also everything below this will run async because i dont want this bottlenecking. but on js side will wait till a user has joined call  
+
+        $searchParamsMethod = new SearchService(); 
+        $userSearchSanitised = $searchParamsMethod->searchSanitisation($args); // pass in our users search arguments
+
+        //take the arguments our of the array and grab the individual values
+        $websiteUsed = $userSearchSanitised['website-used'];
+        $userQuery = $userSearchSanitised['user-query'];
+
+        // points to endpoint that will be used. User token could maybe go into body.
+        // $response = Http::get(config('discord.http').'/api/search-audio', [
+        //     'token' => $usertoken,
+        //     'website-used' => $websiteUsed,
+        //     'user-query' => $userQuery,
+        // ]);
+
+        echo 'omg';
+        // $data = $response->json();
 
         //TO THIS -------------------------------------------------- maybe async 
 

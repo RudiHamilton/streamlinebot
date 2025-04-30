@@ -2,25 +2,24 @@
 
 namespace App\Commands;
 
-use App\Services\UserAuthService;
 use Discord\Parts\Interactions\Interaction;
 use Laracord\Commands\Command;
 
-class rr extends Command
+class Test extends Command
 {
     /**
      * The command name.
      *
      * @var string
      */
-    protected $name = 'rr';
+    protected $name = 'test';
 
     /**
      * The command description.
      *
      * @var string
      */
-    protected $description = 'The Rr command.';
+    protected $description = 'The Test command.';
 
     /**
      * Determines whether the command requires admin permissions.
@@ -45,34 +44,9 @@ class rr extends Command
      */
     public function handle($message, $args)
     {
-        $channel = $message->member->getVoiceChannel() ?? null;
-
-        if (empty($channel)) {
-            return $this->message()
-                ->title('Error')
-                ->content('You need to be in voice chat to use this command.')
-                ->send($message);
-        }
-
-        $voice = $message->member->getVoiceChannel()->getBotPermissions();
-
-        if ($voice['view_channel'] == false) {
-            return $this->message()
-                ->title('Error')
-                ->content('I need permission for your channel :(
-
-                    You might\'ve turned off my permission to join channels when I joined but just reapply these permissions and we should be ok!')
-                ->send($message);
-        }
-
-        $userAuthService = new UserAuthService;
-        $username = $message->member->username;
-        $discordId = $message->user_id;
-        $usertoken = $userAuthService->tokenCheck($username,$discordId);
-
         return $this
             ->message()
-            ->title('Rr')
+            ->title('Test')
             ->content('Hello world!')
             ->button('👋', route: 'wave')
             ->send($message);

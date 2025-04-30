@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 
 class SearchService
 {
+
     //used to santise the argument passed in from the user to determine if its a link, what type of link and if its a text query
     public function searchSanitisation($args)
     {
@@ -23,10 +24,6 @@ class SearchService
         if (str_starts_with($args[0],'https') == 'https'){
             $url = parse_url($args[0]);
             $parsedHost = $url['host'];
-        }
-        else{
-            $err = 'Link must begin with https://';
-            return $err; // how can i handle this too btw because i want to return this maybe as a attribute?
         }
 
         //if i want to add more urls just add else if and handle it on js end.

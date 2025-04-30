@@ -14,7 +14,7 @@ class UserAuthService
         //checks if user has id in database 
         $bot_access_token = DiscordUserAccessTokens::where('discord_id',$discordId)->value('bot_access_token');
         //if they dont then no app token so run if statement
-        if(empty($discord_id)){
+        if(empty($bot_access_token)){
             //create token and get output
             $process = $this->createToken($discordId);
             $process->run();
@@ -65,11 +65,12 @@ class UserAuthService
         ]);
     }
     //simple user creation with defaults as not needed currently.
-    public function createUser($username,$discordId,$access_token, $spotify_app_token = null, $spotify_app_refresh_token = null, $spotify_expires_at = null){
+    public function createUser($username,$discordId,$access_token, $spotify_auth_token = null, $spotify_app_token = null, $spotify_app_refresh_token = null, $spotify_expires_at = null){
         DiscordUserAccessTokens::create([
             'username' => $username,
             'discord_id' => $discordId,
             'bot_access_token' => $access_token,
+            'spotify_auth_token' => $spotify_auth_token,
             'spotify_app_token' => $spotify_app_token,
             'spotify_refresh_token' => $spotify_app_refresh_token,
             'spotify_expires_at' => $spotify_expires_at,
