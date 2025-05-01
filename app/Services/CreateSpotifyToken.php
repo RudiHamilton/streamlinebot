@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Services;
+
 use App\Models\DiscordUser;
 use App\Models\DiscordUserAccessTokens;
 use Illuminate\Support\Carbon;
@@ -10,66 +12,95 @@ Class CreateSpotifyToken
 {
     public function checkSpotifyAppToken($discordId)
     {
-        $spotifyAppToken = DiscordUserAccessTokens::where('discord_id',$discordId)->get(['spotify_app_token','spotify_expires_at']);
-        if(empty($spotifyAppToken->spotify_app_token)){
+        $tokenData = DiscordUserAccessTokens::where('discord_id',$discordId)->first(['spotify_app_token','spotify_app_refresh_token','spotify_expires_at']);
+        
+        $spotifyAppToken = $tokenData['spotify_app_token'];
+        $spotifyAppRefreshToken = $tokenData['spotify_app_refresh_token'];
+        $spotifyExpiresAt = $tokenData['spotify_expires_at']; // stored as 2025-04-30 14:32:51 
+
+        if($spotifyAppToken == null){
             return false;
         }
-        elseif($this->isTokenExpired($spotifyAppToken->spotify_app_refresh_token) == true){
-            $spotifyAppToken->spotify_app_token = $this->refreshSpotifyAppToken($spotifyAppToken);
-        }elseif($this->isTokenExpired($spotifyAppToken->spotify_app_refresh_token) == false){
-            return $spotifyAppToken->spotify_app_token;
+
+        if($this->isTokenExpired($spotifyExpiresAt) == true){
+
+            $spotifyAppToken = $this->refreshSpotifyAppToken($spotifyAppRefreshToken);
+            return $spotifyAppToken;
+
         }
+        return $spotifyAppToken;
     }
 
-    public function isTokenExpired($spotifyAppToken)
+    public function isTokenExpired($spotifyExpiresAt): bool
     {
-        if(Carbon::now() >= $spotifyAppToken->spotify_expires_at){
-            return true;
-        }else{
-            return false;
-        }
+
+        $expiryDate = Carbon::parse($spotifyExpiresAt);
+        $timeNow = Carbon::now()->addHour();
+        
+        return $timeNow->greaterThanOrEqualTo($expiryDate);
             
     }
     public function refreshSpotifyAppToken($spotifyAppRefreshToken)
     {
-        $refreshedAccessToken = Http::post('https://accounts.spotify.com/api/token',[
+
+        $clientId = config('app.spotify_client_id'); 
+        $clientSecret = config('app.spotify_client_secret'); 
+
+        $credentials =base64_encode($clientId . ':' . $clientSecret);
+
+        $refreshedAccessToken = Http::withHeaders([
+            'Content-Type' => 'application/x-www-form-urlencoded',
+            'Authorization' => 'Basic ' . $credentials,
+        ])
+        ->asForm()
+        ->post('https://accounts.spotify.com/api/token',[
             'grant_type' => 'refresh_token', 
             'refresh_token' => $spotifyAppRefreshToken,
         ]);
-        $spotifyAppToken = json_decode($refreshedAccessToken->json(),true);
 
-        $userRecord = DiscordUserAccessTokens::where('spotify_app_token',$spotifyAppToken)->get();
-        $userRecord->spotify_app_token = $spotifyAppToken['refresh_token'];
-        $userRecord->save();
+        $data = $refreshedAccessToken->json();
 
-        return $spotifyAppToken;
-    }
-    public function storeSpotifyAuthToken($state,$data)
-    {
-        $userRecord = DiscordUserAccessTokens::where('bot_access_token', $state)->get();
-        $userRecord->spotify_auth_token = $data['token'];
-        $userRecord->save();
-    }
-    public function storeSpotifyAccessTokens($bot_access_token,$spotify_auth_token,$spotify_app_token,$spotify_app_refresh_token,$spotify_expires_at): void
-    {   
-        DiscordUserAccessTokens::where('bot_access_token',$bot_access_token)->update([
-            'spotify_auth_token' => $spotify_auth_token,
-            'spotify_app_token' => $spotify_app_token,
-            'spotify_app_refresh_token' => $spotify_app_refresh_token,
-            'spotify_expires_at' => $spotify_expires_at,
-        ]);
-        // $userRecord->spotify_auth_token = $spotify_auth_token;
-        // $userRecord->
-        // $userRecord->spotify_app_refresh_token = $spotify_app_refresh_token;
-        // $userRecord->spotify_expires_at = $spotify_expires_at;
+        $expiresAt = Carbon::now()->addHour();
+        
+
+        DiscordUserAccessTokens::where('spotify_app_refresh_token',$spotifyAppRefreshToken)
+            ->update([
+                'spotify_app_token' => $data['access_token'],
+                'spotify_expires_at' => $expiresAt->addHour(),
+            ]);
+
+        // $userRecord->spotify_app_token = $data['access_token'];
+        // $userRecord->spotify_expires_at = $expiresAt->addHour();
         // $userRecord->save();
-        // $userRecord = DiscordUserAccessTokens::where('bot_access_token',$bot_access_token)->first();
-        return;
+
+        return $data['access_token'];
     }
-    public function storeNewAccessToken($discordId,$refreshedAccessToken)
-    {
-        $userRecord = DiscordUserAccessTokens::where('discord_id',$discordId)->get();
-        $userRecord->spotify_app_token = $refreshedAccessToken;
-        $userRecord->spotify_expires_at = Carbon::now()->addHour();
-    }
+    // public function storeSpotifyAuthToken($state,$data)
+    // {
+    //     $userRecord = DiscordUserAccessTokens::where('bot_access_token', $state)->get();
+    //     $userRecord->spotify_auth_token = $data['token'];
+    //     $userRecord->save();
+    // }
+    // public function storeSpotifyAccessTokens($bot_access_token,$spotify_auth_token,$spotify_app_token,$spotify_app_refresh_token,$spotify_expires_at): void
+    // {   
+    //     DiscordUserAccessTokens::where('bot_access_token',$bot_access_token)->update([
+    //         'spotify_auth_token' => $spotify_auth_token,
+    //         'spotify_app_token' => $spotify_app_token,
+    //         'spotify_app_refresh_token' => $spotify_app_refresh_token,
+    //         'spotify_expires_at' => $spotify_expires_at,
+    //     ]);
+    //     // $userRecord->spotify_auth_token = $spotify_auth_token;
+    //     // $userRecord->
+    //     // $userRecord->spotify_app_refresh_token = $spotify_app_refresh_token;
+    //     // $userRecord->spotify_expires_at = $spotify_expires_at;
+    //     // $userRecord->save();
+    //     // $userRecord = DiscordUserAccessTokens::where('bot_access_token',$bot_access_token)->first();
+    //     return;
+    // }
+    // public function storeNewAccessToken($discordId,$refreshedAccessToken)
+    // {
+    //     $userRecord = DiscordUserAccessTokens::where('discord_id',$discordId)->get();
+    //     $userRecord->spotify_app_token = $refreshedAccessToken;
+    //     $userRecord->spotify_expires_at = Carbon::now()->addHour();
+    // }
 }

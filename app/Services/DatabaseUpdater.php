@@ -10,37 +10,40 @@ class DatabaseUpdater extends Service
     /**
      * The service interval.
      */
-    protected int $interval = 300;
+    protected int $interval = 120;
 
     /**
      * Handle the service.
      */
     public function handle():mixed
     {
-        $botToken = DiscordUserAccessTokens::where('spotify_app_refresh_token',null)->value('bot_access_token');
+        $botTokens = DiscordUserAccessTokens::where('spotify_app_refresh_token',null)->get(['bot_access_token','username']);
 
-        if ($botToken) {
-            // Process a specific token
-            $this->processToken($botToken);
-        } else {
-            // Look for any cached tokens that match our pattern
-            $this->processCachedTokens();
+        foreach($botTokens as $botToken){
+            $botAccessToken = $botToken->bot_access_token;
+            $username = $botToken->username;
+            if ($botAccessToken) {
+                // process a specific token
+                $this->processToken($botAccessToken,$username);
+            } else {
+                // search for any cached tokens that matches pattern
+                $this->processCachedTokens();
+            }
         }
-        
         return $this->console()->log('Spotify tokens processing complete.');
     }
-    protected function processToken(string $botToken): void
+    protected function processToken(string $botAccessToken,$username): void
     {
-        $cacheKey = 'spotify_tokens_' . $botToken;
-        $tokenData = cache()->get(key: 'spotify_tokens_'.$botToken);
+        $cacheKey = 'spotify_tokens_' . $botAccessToken;
+        $tokenData = cache()->get(key: 'spotify_tokens_'.$botAccessToken);
         
         if (!$tokenData) {
-            $this->console()->log("No cached token found for: {$botToken}");
+            $this->console()->log("No cached token found for: {$username}");
             return;
         }
         
-        $this->updateDatabase($botToken, $tokenData);
-        $this->console()->log("Processed token for: {$botToken}");
+        $this->updateDatabase($botAccessToken, $tokenData);
+        $this->console()->log("------------------------------------  Processed token for: {$username}  ------------------------------------");
         
         // Clear from cache after processing
         cache()->forget($cacheKey);

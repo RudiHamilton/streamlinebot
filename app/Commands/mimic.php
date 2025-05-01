@@ -4,7 +4,8 @@ namespace App\Commands;
 
 use App\Models\DiscordUserAccessTokens;
 use App\Services\UserAuthService;
-use CreateSpotifyToken;
+use App\Services\CreateQueue;
+use App\Services\CreateSpotifyToken;
 use Discord\Parts\Interactions\Interaction;
 use Illuminate\Support\Facades\Http;
 use Laracord\Commands\Command;
@@ -103,8 +104,6 @@ class mimic extends Command
                     . "&redirect_uri=" . urlencode($redirectUri)
                     . "&state={$token}"
                     . "&scope=" . urlencode($scope);
-
-            echo $url;
         
             $this
                 ->message()
@@ -132,16 +131,50 @@ class mimic extends Command
                 ->sendTo($discordId);
 
         }elseif($spotifyAppToken == true){
-            return $this
-            ->message()
-            ->title('Starting mimic')
-            ->content('
-            Bot is now mimicing: '
-            .$username.'
-            All music that is now playing from the bot is from '
-            .$username
-            )
-            ->send($message);
+
+            $queue = new CreateQueue;
+            $usersQueue = $queue->getUsersQueue($spotifyAppToken);
+            if($usersQueue == null){
+                return $this
+                    ->message()
+                    ->title('Failed Mimic')
+                    ->content('
+                    Attempted to mimic: '
+                    .$username.'
+                    Please play a song on spotify to load a queue if a song isnt playing no queue is loaded!'
+                    )
+                    ->send($message);
+            }
+
+            $channel = $message->member->getVoiceChannel() ?? null;
+            $this->discord()->joinVoiceChannel(channel: $channel, mute: false, deaf: true);
+
+            $this
+                ->message()
+                ->title('Starting mimic')
+                ->content('
+                Bot is now mimicing: '
+                .$username.'
+                All music that is now playing from the bot is now from '
+                .$username
+                )
+                ->send($message);
+
+            $this
+                ->message()
+                ->title($username . '\'s Queue')
+                ->content('
+                    First 10 songs in queue:'.
+                    PHP_EOL.
+                    '----------------------'.
+                    $this->returnReadbleQueue($usersQueue)
+                )->send($message);
+
+            /*
+            *
+            * HERE I WILL PLACE THE FUNCTION CALLING TO THE MUSIC BOT TO PLAY THE SONGS 
+            *
+            */
 
         }else{
             return $this
@@ -153,7 +186,30 @@ class mimic extends Command
         }
         
     }
+    public function returnReadbleQueue($usersQueue)
+    {
+        $content='';
+        foreach($usersQueue as $song)
+        {
+            $artists = $song['artists'];
+            $artistString = '';
 
+            if(count($artists) >= 2){
+                for ($x = 0; $x < count($artists) - 1; $x++) {
+                    $artistString .= $artists[$x] . ', ';
+                }
+                $artistString .= $artists[count($artists) - 1];
+            } else {
+                $artistString = $artists[0];
+            }
+            $queue = '
+            Song: '.$song['song'].PHP_EOL.' 
+            Artist: '.$artistString.'
+            ----------------------';
+            $content = $content . $queue;
+        }
+        return $content;
+    }
     /**
      * The command interaction routes.
      */

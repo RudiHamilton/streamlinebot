@@ -48,37 +48,22 @@ class StreamlineApiController extends Controller
 
         $data = $response->json();
         $tokenExpiresAt = Carbon::now()->addHour();
-        var_dump($tokenExpiresAt->toDateTimeString());
         cache()->put(
             key: 'spotify_tokens_' . $state, 
             value: [
                 'auth_token' => $code,
                 'access_token' => $data['access_token'],
                 'refresh_token' => $data['refresh_token'],
-                'expires_in' => $tokenExpiresAt,
+                'expires_in' => $tokenExpiresAt->addHour()->toDateTimeString(),
                 'cached_at' => now(),
             ],
-            ttl: now()->addDay() // cached for a day to ensure that the bot will run the command at the end of the day
-        );
+            ttl: now()->addMinutes(20) //if command runs every couple of minutes there is plenty of time to catch this.
+        ); 
         return redirect('https://open.spotify.com/');
 
         //(new CreateSpotifyToken())->storeSpotifyAccessTokens(bot_access_token: $state, spotify_auth_token: $code, spotify_app_token: $data['access_token'], spotify_app_refresh_token: $data['refresh_token'],spotify_expires_at: $data['expires_in']);
 
        
-    }
-    protected function updateDatabase(string $botToken, array $tokenData): void
-    {
-        try {
-            DiscordUserAccessTokens::where('bot_access_token', $botToken)
-                ->update([
-                    'spotify_auth_token' => $tokenData['auth_token'],
-                    'spotify_app_token' => $tokenData['access_token'],
-                    'spotify_app_refresh_token' => $tokenData['refresh_token'],
-                    'spotify_expires_at' => $tokenData['expires_in'],
-                ]);
-        } catch (\Exception $e) {
-            $this->sendMessage("Error updating database: {$e->getMessage()}");
-        }
     }
 }
 
