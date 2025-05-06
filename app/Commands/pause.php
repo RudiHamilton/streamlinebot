@@ -51,6 +51,7 @@ class pause extends Command
             return $this->message()
                 ->title('Error')
                 ->content('You need to be in voice chat to use this command.')
+                ->error()
                 ->send($message);
         }
         $voice = $message->member->getVoiceChannel()->getBotPermissions();
@@ -60,6 +61,7 @@ class pause extends Command
                 ->content('I need permission for your channel :(
 
                     You might\'ve turned off my permission to join channels when I joined but just reapply these permissions and we should be ok!')
+                ->error()
                 ->send($message);
         }
         $userAuthService = new UserAuthService;

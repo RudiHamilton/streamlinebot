@@ -2,24 +2,25 @@
 
 namespace App\Commands;
 
+use App\Services\QueueService;
 use Discord\Parts\Interactions\Interaction;
 use Laracord\Commands\Command;
 
-class help extends Command
+class Queue extends Command
 {
     /**
      * The command name.
      *
      * @var string
      */
-    protected $name = 'help';
+    protected $name = 'queue';
 
     /**
      * The command description.
      *
      * @var string
      */
-    protected $description = 'The Help command.';
+    protected $description = 'The Queue command.';
 
     /**
      * Determines whether the command requires admin permissions.
@@ -44,34 +45,12 @@ class help extends Command
      */
     public function handle($message, $args)
     {
+        dd(QueueService::getQueue());
         return $this
             ->message()
-            ->title('Help')
-            ->content('
-            
-                Commands that can be used:
-
-                s!play:  Play a song can be text or a url
-
-                s!stop:  Stops the song and leaves voice channel
-
-                s!pause: Pauses the track
-
-                s!skip:  Skip current song and play next in queue
-
-                s!back:  Returns the last played song before current song playing 
-
-                s!ff:    Fast forwards the song 20 seconds
-
-                s!queue: Returns the current queue
-
-                s!cq:    Clears the queue
-
-                s!rr:    Rewinds the song 20 seconds
-                
-                s!mimic: Coming soon 🤫
-
-            ')
+            ->title('Queue')
+            ->content('Hello world!')
+            ->button('👋', route: 'wave')
             ->send($message);
     }
 

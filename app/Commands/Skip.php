@@ -6,21 +6,21 @@ use App\Services\UserAuthService;
 use Discord\Parts\Interactions\Interaction;
 use Laracord\Commands\Command;
 
-class stop extends Command
+class Skip extends Command
 {
     /**
      * The command name.
      *
      * @var string
      */
-    protected $name = 'stop';
+    protected $name = 'skip';
 
     /**
      * The command description.
      *
      * @var string
      */
-    protected $description = 'The Stop command.';
+    protected $description = 'The Skip command.';
 
     /**
      * Determines whether the command requires admin permissions.
@@ -56,6 +56,7 @@ class stop extends Command
         }
 
         $voice = $message->member->getVoiceChannel()->getBotPermissions();
+
         if ($voice['view_channel'] == false) {
             return $this->message()
                 ->title('Error')
@@ -65,7 +66,7 @@ class stop extends Command
                 ->error()
                 ->send($message);
         }
-
+        
         $userAuthService = new UserAuthService;
         $username = $message->member->username;
         $discordId = $message->user_id;
@@ -73,7 +74,7 @@ class stop extends Command
 
         return $this
             ->message()
-            ->title('Stop')
+            ->title('Ff')
             ->content('Hello world!')
             ->button('👋', route: 'wave')
             ->send($message);

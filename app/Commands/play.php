@@ -2,12 +2,14 @@
 
 namespace App\Commands;
 
+use App\Services\QueueService;
 use Discord\Parts\Interactions\Interaction;
 use Laracord\Commands\Command;
 use App\Services\SearchService;
 use App\Services\UserAuthService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use YtdlpService;
 
 class play extends Command
 {
@@ -55,6 +57,7 @@ class play extends Command
             return $this->message()
                 ->title('Error')
                 ->content('Please provide a URL from soundcloud/youtube/spotify or a song name.')
+                ->error()
                 ->send($message);
         }
 
@@ -65,6 +68,7 @@ class play extends Command
             return $this->message()
                 ->title('Error')
                 ->content('You need to be in voice chat to use this command.')
+                ->error()
                 ->send($message);
         }
 
@@ -75,7 +79,9 @@ class play extends Command
                 ->title('Error')
                 ->content('I need permission for your channel :(
 
-                    You might\'ve turned off my permission to join channels when I joined but just reapply these permissions and we should be ok!')
+                    You might\'ve turned off my permission to join channels when I joined but just reapply these permissions and we should be ok!'
+                    )
+                ->error()
                 ->send($message);
         }
         //FOR THIS ----------------------------------------------
@@ -91,9 +97,11 @@ class play extends Command
         $searchParamsMethod = new SearchService(); 
         $userSearchSanitised = $searchParamsMethod->searchSanitisation($args); // pass in our users search arguments
 
-        //take the arguments our of the array and grab the individual values
-        $websiteUsed = $userSearchSanitised['website-used'];
-        $userQuery = $userSearchSanitised['user-query'];
+        $ytdlpService = new YtdlpService();
+        $track = $ytdlpService->search($userSearchSanitised['user-query'],$userSearchSanitised['website-used']);
+
+
+        QueueService::addToQueue($track);
 
         // points to endpoint that will be used. User token could maybe go into body.
         // $response = Http::get(config('discord.http').'/api/search-audio', [

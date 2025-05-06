@@ -2,25 +2,26 @@
 
 namespace App\Commands;
 
+use App\Services\QueueService;
 use App\Services\UserAuthService;
 use Discord\Parts\Interactions\Interaction;
 use Laracord\Commands\Command;
 
-class stop extends Command
+class ClearQueue extends Command
 {
     /**
      * The command name.
      *
      * @var string
      */
-    protected $name = 'stop';
+    protected $name = 'cq';
 
     /**
      * The command description.
      *
      * @var string
      */
-    protected $description = 'The Stop command.';
+    protected $description = 'The Clear Queue command.';
 
     /**
      * Determines whether the command requires admin permissions.
@@ -45,6 +46,8 @@ class stop extends Command
      */
     public function handle($message, $args)
     {
+        $queue = new QueueService;
+
         $channel = $message->member->getVoiceChannel() ?? null;
 
         if (empty($channel)) {
@@ -56,12 +59,14 @@ class stop extends Command
         }
 
         $voice = $message->member->getVoiceChannel()->getBotPermissions();
+
         if ($voice['view_channel'] == false) {
             return $this->message()
                 ->title('Error')
                 ->content('I need permission for your channel :(
 
-                    You might\'ve turned off my permission to join channels when I joined but just reapply these permissions and we should be ok!')
+                    You might\'ve turned off my permission to join channels when I joined but just reapply these permissions and we should be ok!'
+                    )
                 ->error()
                 ->send($message);
         }
@@ -71,11 +76,12 @@ class stop extends Command
         $discordId = $message->user_id;
         $usertoken = $userAuthService->tokenCheck($username,$discordId);
 
+        $queue->clearQueue();
+
         return $this
             ->message()
-            ->title('Stop')
-            ->content('Hello world!')
-            ->button('👋', route: 'wave')
+            ->title('Clear Queue')
+            ->content('Clears the bots queue.')
             ->send($message);
     }
 

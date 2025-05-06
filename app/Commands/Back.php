@@ -6,21 +6,21 @@ use App\Services\UserAuthService;
 use Discord\Parts\Interactions\Interaction;
 use Laracord\Commands\Command;
 
-class stop extends Command
+class Back extends Command
 {
     /**
      * The command name.
      *
      * @var string
      */
-    protected $name = 'stop';
+    protected $name = 'back';
 
     /**
      * The command description.
      *
      * @var string
      */
-    protected $description = 'The Stop command.';
+    protected $description = 'The Back command.';
 
     /**
      * Determines whether the command requires admin permissions.
@@ -56,16 +56,18 @@ class stop extends Command
         }
 
         $voice = $message->member->getVoiceChannel()->getBotPermissions();
+
         if ($voice['view_channel'] == false) {
             return $this->message()
                 ->title('Error')
                 ->content('I need permission for your channel :(
 
-                    You might\'ve turned off my permission to join channels when I joined but just reapply these permissions and we should be ok!')
+                    You might\'ve turned off my permission to join channels when I joined but just reapply these permissions and we should be ok!'
+                    )
                 ->error()
                 ->send($message);
         }
-
+        
         $userAuthService = new UserAuthService;
         $username = $message->member->username;
         $discordId = $message->user_id;
@@ -73,9 +75,8 @@ class stop extends Command
 
         return $this
             ->message()
-            ->title('Stop')
-            ->content('Hello world!')
-            ->button('👋', route: 'wave')
+            ->title('Back')
+            ->content('goes back to previous song')
             ->send($message);
     }
 

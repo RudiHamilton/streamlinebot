@@ -66,27 +66,3 @@ class StreamlineApiController extends Controller
        
     }
 }
-
-        // $code = $request->query('code');
-        // $state = $request->query('state'); // user token. 
-
-        // echo PHP_EOL.$state;
-        // if (!$code) {
-        //     return response()->json(['error' => 'No code provided'], 400);
-        // }
-
-        // // Exchange code for access token
-        // $response = Http::asForm()->post('https://accounts.spotify.com/api/token', [
-        //     'grant_type' => 'authorization_code',
-        //     'code' => $code,
-        //     'redirect_uri' => config('discord.ngrok') . '/api/spotify-auth-callback',
-        //     'client_id' => config('app.spotify_client_id'),
-        //     'client_secret' => config('app.spotify_client_secret'),
-        // ]);
-
-        // if ($response->failed()) {
-        //     Log::error('Spotify token exchange failed', ['response' => $response->body()]);
-        //     return response()->json(['error' => 'Token exchange failed'], 500);
-        // }
-
-        // $data = $response->json();

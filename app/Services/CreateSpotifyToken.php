@@ -46,7 +46,7 @@ Class CreateSpotifyToken
         $clientId = config('app.spotify_client_id'); 
         $clientSecret = config('app.spotify_client_secret'); 
 
-        $credentials =base64_encode($clientId . ':' . $clientSecret);
+        $credentials = base64_encode($clientId . ':' . $clientSecret);
 
         $refreshedAccessToken = Http::withHeaders([
             'Content-Type' => 'application/x-www-form-urlencoded',
