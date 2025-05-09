@@ -35,7 +35,7 @@ Class QueueService
 
     public static function skipTrack(): ?array
     {
-        return array_shift(self::$Queue); // Removes and returns first track
+        return array_shift(self::$Queue); // Removes and returns first track PROB A BETTER WAY HANDLE THIS FOR GOING BACK SONGS
     }
 
     public static function insertAtTop(array $track): void
@@ -90,7 +90,7 @@ Class QueueService
         $currentTrack = [
             'song' => $currentSongName,
             'artists' => $currentArtistNames,
-            'url' => $url['url'],
+            'url' => (string)$url['url'],
             'duration' => $currentDuration,
             'source' => 'spotify',
             'processed' => true,
@@ -98,8 +98,7 @@ Class QueueService
 
         QueueService::addToQueue(track: $currentTrack);
         
-        for($x = 0; $x <= 8; $x++) {  
-
+        for($x = 0; $x <= 18; $x++) {  
             $song = $spotifyQueue[$x];
             $urls = $song['external_urls'];
             $songName = $song['name'];
@@ -140,7 +139,28 @@ Class QueueService
             }
 
             $query = $track['song'] . $track['artists'][0] ?? '';
+            $backupQuery1 = $track['song'] . ' ' . $track['artists'][0] ?? '';
+            $backupQuery2 =   $track['artists'][0] . ' ' . $track['song']?? '';
+            $backupQuery3 = '"'. $track['song'] . $track['artists'][0].'"' ?? '';
+            $backupQuery4 = '"'.  $track['artists'][0] . $track['song'].'"' ?? '';
+
             $ytUrlData = $ytdlpService->search($query, 'spotify');
+            
+            if (empty($ytUrlData['url'])){
+                $ytUrlData = $ytdlpService->search($backupQuery1, 'spotify');
+            }
+            if (empty($ytUrlData['url'])){
+                $ytUrlData = $ytdlpService->search($backupQuery2, 'spotify');
+            }
+            if (empty($ytUrlData['url'])){
+                $ytUrlData = $ytdlpService->search($backupQuery3, 'spotify');
+            }
+            if (empty($ytUrlData['url'])){
+                $ytUrlData = $ytdlpService->search($backupQuery4, 'spotify');
+            }
+            if (empty($ytUrlData['url'])){
+                $track['song'] = $track['song']. ' Is broken and we cannot find a link';
+            }
             $track['url'] = $ytUrlData['url'] ?? '';
             $track['processed'] = true;
         }
@@ -150,7 +170,7 @@ Class QueueService
     }
 
 
-    public function msToMins($duration) {
+    public static function msToMins($duration) {
         // Convert milliseconds to seconds first
         $totalSeconds = floor($duration / 1000);
         

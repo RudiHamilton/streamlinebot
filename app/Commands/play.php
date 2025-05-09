@@ -50,6 +50,11 @@ class play extends Command
      */
     public function handle($message, $args)
     {
+        if(empty(QueueService::getQueue())){
+            $queueState = 'empty';
+        }else{
+            $queueState = 'notempty';
+        }
         $userAuthService = new UserAuthService;
 
         //checks to see if there is an argument following the play. for future might have a else to this to unpause a song
@@ -95,20 +100,31 @@ class play extends Command
         //Also everything below this will run async because i dont want this bottlenecking. but on js side will wait till a user has joined call  
 
         $searchParamsMethod = new SearchService(); 
-        $userSearchSanitised = $searchParamsMethod->searchSanitisation($args); // pass in our users search arguments
+        $userSearchSanitised = $searchParamsMethod->searchSanitisation($args,$discordId); // pass in our users search arguments
+
+        if($userSearchSanitised == 'PlaylistSuccess'){
+            return $this->message()
+            ->title(title: 'Playlist has been Queued')
+            ->content('We have added your playlist to queue!'.PHP_EOL.'Use s!queue to view your songs.')
+            ->send($message);
+        }
 
         $ytdlpService = new YtdlpService();
         $track = $ytdlpService->search($userSearchSanitised['user-query'],$userSearchSanitised['website-used']);
 
+        if ($track == 'failed'){
+            return $this->message()
+                ->title('Error')
+                ->content('Couldnt find the song: '.$userSearchSanitised['user-query'])
+                ->error()
+                ->send($message);
+        }
+        $queue = QueueService::getQueue();
+        $trackPosition = count($queue); // because it's about to be added
+
+
 
         QueueService::addToQueue($track);
-
-        // points to endpoint that will be used. User token could maybe go into body.
-        // $response = Http::get(config('discord.http').'/api/search-audio', [
-        //     'token' => $usertoken,
-        //     'website-used' => $websiteUsed,
-        //     'user-query' => $userQuery,
-        // ]);
 
         echo 'omg';
         // $data = $response->json();
@@ -117,26 +133,42 @@ class play extends Command
 
         //after these statements are finished bot can join voice channel.
         $this->discord()->joinVoiceChannel(channel: $channel, mute: false, deaf: true);
-
-        //dummy placeholder
-        $song = 'Invisible';
-        $artist = 'Bladee';
-        $duration = '3:14';
         
+        $queue = QueueService::getQueue();
+      
         $user = $message->member;
+        
+        
 
+        if($queueState == 'empty'){
+            $currentTrack = $queue[0];
+            return $this
+                ->message()
+                ->title('Playing a song')
+                ->content('
+                Song: '.$currentTrack['song'].'
+                Artist: '.$currentTrack['artists'].'
+                Duration: '.$currentTrack['duration'].'
+                Requested by: '.$user
+                )
+                ->send($message);
+        }else{
+            //IMPORTANT
+            $currentTrack = $queue[$trackPosition];
+            //IMPORTANT
+            return $this
+                ->message()
+                ->title('Added song to queue')
+                ->content('
+                Song: '.$currentTrack['song'].'
+                Artist: '.$currentTrack['artists'].'
+                Duration: '.$currentTrack['duration'].'
+                Requested by: '.$user
+                )
+                ->send($message);
+        }
         //message returned after joining
-        return $this
-            ->message()
-            ->title('Playing a song')
-            ->content('
-            Song: '.$song.'
-            Artist: '.$artist.'
-            Duration: '.$duration.'
-            Requested by: '.$user
-            )
-            ->send($message);
-         
+        
     }
     /**
      * The command interaction routes.

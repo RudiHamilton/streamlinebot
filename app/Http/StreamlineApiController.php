@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use App\Models\DiscordUserAccessTokens;
+use App\Services\QueueService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Laracord\Http\Controllers\Controller;
@@ -64,5 +65,16 @@ class StreamlineApiController extends Controller
         //(new CreateSpotifyToken())->storeSpotifyAccessTokens(bot_access_token: $state, spotify_auth_token: $code, spotify_app_token: $data['access_token'], spotify_app_refresh_token: $data['refresh_token'],spotify_expires_at: $data['expires_in']);
 
        
+    }
+    public function queue()
+    {
+        $data = QueueService::getQueue();
+        return response()->json($data,200);
+    }
+
+    public function currentTrack()
+    {
+        $data = QueueService::getNextTrack();
+        return response()->json($data,200);
     }
 }

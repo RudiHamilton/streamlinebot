@@ -69,38 +69,6 @@ Class CreateSpotifyToken
                 'spotify_expires_at' => $expiresAt->addHour(),
             ]);
 
-        // $userRecord->spotify_app_token = $data['access_token'];
-        // $userRecord->spotify_expires_at = $expiresAt->addHour();
-        // $userRecord->save();
-
         return $data['access_token'];
     }
-    // public function storeSpotifyAuthToken($state,$data)
-    // {
-    //     $userRecord = DiscordUserAccessTokens::where('bot_access_token', $state)->get();
-    //     $userRecord->spotify_auth_token = $data['token'];
-    //     $userRecord->save();
-    // }
-    // public function storeSpotifyAccessTokens($bot_access_token,$spotify_auth_token,$spotify_app_token,$spotify_app_refresh_token,$spotify_expires_at): void
-    // {   
-    //     DiscordUserAccessTokens::where('bot_access_token',$bot_access_token)->update([
-    //         'spotify_auth_token' => $spotify_auth_token,
-    //         'spotify_app_token' => $spotify_app_token,
-    //         'spotify_app_refresh_token' => $spotify_app_refresh_token,
-    //         'spotify_expires_at' => $spotify_expires_at,
-    //     ]);
-    //     // $userRecord->spotify_auth_token = $spotify_auth_token;
-    //     // $userRecord->
-    //     // $userRecord->spotify_app_refresh_token = $spotify_app_refresh_token;
-    //     // $userRecord->spotify_expires_at = $spotify_expires_at;
-    //     // $userRecord->save();
-    //     // $userRecord = DiscordUserAccessTokens::where('bot_access_token',$bot_access_token)->first();
-    //     return;
-    // }
-    // public function storeNewAccessToken($discordId,$refreshedAccessToken)
-    // {
-    //     $userRecord = DiscordUserAccessTokens::where('discord_id',$discordId)->get();
-    //     $userRecord->spotify_app_token = $refreshedAccessToken;
-    //     $userRecord->spotify_expires_at = Carbon::now()->addHour();
-    // }
 }

@@ -9,7 +9,7 @@ class QueueProcessor extends Service
     /**
      * The service interval.
      */
-    protected int $interval = 25;
+    protected int $interval = 100;
 
     /**
      * Handle the service.

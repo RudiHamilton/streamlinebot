@@ -184,4 +184,6 @@ return [
         //
     ],
 
+    'botid' => env('BOT_ID')
+
 ];

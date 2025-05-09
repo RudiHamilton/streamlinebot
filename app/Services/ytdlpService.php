@@ -31,7 +31,10 @@ Class YtdlpService
         if (! $process->isSuccessful()) {
             throw new \RuntimeException('yt-dlp failed: '.$process->getErrorOutput());
         }
-
+        if (empty($process->getOutput())){
+            return 'failed';
+        }
+        
         return $this->parseResult($process->getOutput(),$source);
     }
 
@@ -56,9 +59,9 @@ Class YtdlpService
         echo $title.PHP_EOL;
         echo 'Artist: '.$artist.PHP_EOL;
         echo 'Duration: '.$duration.PHP_EOL;
-
+        
         return $track = [
-            'title' => $title,
+            'song' => $title,
             'artists' => $artist,
             'duration' => $duration,
             'url' => $url,
@@ -85,7 +88,7 @@ Class YtdlpService
         if ($minutes > 0) {
             $minutesoverall = "$minutes minutes ";
         }
-        if ($seconds > 0) {
+        if ($seconds >= 0) {
             $secondsoverall = "$seconds seconds.";
         }
         $duration = $minutesoverall.$secondsoverall;

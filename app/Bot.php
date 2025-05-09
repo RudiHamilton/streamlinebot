@@ -34,9 +34,12 @@ class Bot extends Laracord
              //posts the users query.
              //get for now to test...
             Route::get('/api/search-audio',[StreamlineApiController::class,'search']);
-            
+            Route::get('/api/queue',[StreamlineApiController::class,'queue']);
+            //once endpoint reached on js when song over call this again and then reindex the array +1
+            Route::get('/api/current-track',[StreamlineApiController::class,'currentTrack']);    
         });
         Route::get('/api/spotify-auth-callback',[StreamlineApiController::class, 'spotifyAuthCallback']);
+        
        
     }
 }
