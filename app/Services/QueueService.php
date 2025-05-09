@@ -90,7 +90,7 @@ Class QueueService
         $currentTrack = [
             'song' => $currentSongName,
             'artists' => $currentArtistNames,
-            'url' => (string)$url['url'],
+            'url' => $url,
             'duration' => $currentDuration,
             'source' => 'spotify',
             'processed' => true,

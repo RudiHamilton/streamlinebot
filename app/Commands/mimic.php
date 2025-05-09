@@ -161,7 +161,7 @@ class mimic extends Command
             $channel = $message->member->getVoiceChannel() ?? null;
             $this->discord()->joinVoiceChannel(channel: $channel, mute: false, deaf: true);
 
-            $this
+            return $this
                 ->message()
                 ->title('Starting mimic')
                 ->content('
@@ -172,17 +172,17 @@ class mimic extends Command
                 )
                 ->send($message);
             
-            $readableQueue = $this->returnReadableQueue();
+            // $readableQueue = $this->returnReadableQueue();
 
-            $this
-                ->message()
-                ->title($username . '\'s Queue')
-                ->content('
-                    First 10 songs in queue:'.
-                    PHP_EOL.
-                    '----------------------'.
-                    $readableQueue
-                )->send($message);
+            // $this
+            //     ->message()
+            //     ->title($username . '\'s Queue')
+            //     ->content('
+            //         First 10 songs in queue:'.
+            //         PHP_EOL.
+            //         '----------------------'.
+            //         $readableQueue
+            //     )->send($message);
 
             
             /*
